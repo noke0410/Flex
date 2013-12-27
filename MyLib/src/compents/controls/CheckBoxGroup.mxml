@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 initialize="initializeHandler(event)">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import spark.components.CheckBox;
+			import spark.layouts.BasicLayout;
+			import spark.layouts.HorizontalLayout;
+			import spark.layouts.TileLayout;
+			import spark.layouts.supportClasses.LayoutBase;
+			
+			public const BASICLAYOUT:String = "BasicLayout";
+			public const HORIZONTALLAYOUT:String = "HorizontalLayout";
+			public const VERTICALLAYOUT:String = "VerticalLayout";
+			public const TILELAYOUT:String = "TileLayout";
+			
+			private var _innerlayout:String = HORIZONTALLAYOUT;
+			private var _elementnumberingroup:int = 5;
+			private var _dataprovider:Object;
+			private var _selectedValues:Array;
+			
+			public function get innerlayout():String
+			{
+				return _innerlayout;
+			}
+			
+			public function set innerlayout(layouttype:String):void
+			{
+				switch (layouttype) {
+					case VERTICALLAYOUT:
+					case HORIZONTALLAYOUT:
+					case TILELAYOUT:
+					case BASICLAYOUT:
+						_innerlayout = layouttype;
+						break;
+					default:
+						_innerlayout = BASICLAYOUT;
+				}
+			}
+			
+			public function get elementnumberingroup():int
+			{
+				return _elementnumberingroup;
+			}
+			
+			public function set elementnumberingroup(num:int):void
+			{
+				_elementnumberingroup = (num<1)?1:num;
+			}
+			
+			public function get selectedValues():Array
+			{
+				var groupindex:int;
+				var checkboxindex:int;
+				var innergroup:Group;
+				var checkbox:CheckBox;
+				
+				_selectedValues = [];
+				for (groupindex=0; groupindex<super.numChildren; groupindex++) {
+					innergroup = super.getChildAt(groupindex) as Group;
+					for (checkboxindex=0; checkboxindex<innergroup.numChildren; checkboxindex++) {
+						checkbox = innergroup.getChildAt(checkboxindex) as CheckBox;
+						if (checkbox.selected) {
+							_selectedValues.push(checkbox.label);
+						}
+					}
+				}
+				
+				return _selectedValues;
+			}
+			
+			public function set selectedValues(value:Array):void
+			{
+				var groupindex:int;
+				var checkboxindex:int;
+				var innergroup:Group;
+				var checkbox:CheckBox;
+				
+				for (groupindex=0; groupindex<super.numChildren; groupindex++) {
+					innergroup = super.getChildAt(groupindex) as Group;
+					for (checkboxindex=0; checkboxindex<innergroup.numChildren; checkboxindex++) {
+						checkbox = innergroup.getChildAt(checkboxindex) as CheckBox;
+						checkbox.selected = false;
+						if (value.indexOf(checkbox.label) != -1) {
+							checkbox.selected = true;
+						}
+					}
+				}
+			}
+			
+			public function get dataprovider():Object
+			{
+				return _dataprovider;
+			}
+			
+			public function set dataprovider(value:Object):void
+			{
+				_dataprovider = value;
+			}
+			
+			private function getLayout(layouttype:String):LayoutBase
+			{
+				switch (layouttype) {
+					case VERTICALLAYOUT:
+						return new VerticalLayout();
+					case HORIZONTALLAYOUT:
+						return new HorizontalLayout();
+					case TILELAYOUT:
+						return new TileLayout();
+					default:
+						return new BasicLayout();
+				}
+			}
+			
+			private function newGroup():Group
+			{
+				var group:Group = new Group();
+				group.layout = getLayout(innerlayout);
+				
+				return group;
+			}
+			
+			private function newCheckBox():CheckBox
+			{
+				return new CheckBox();
+			}
+			
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				var count:int = 0;
+				var elementnumbers:int = 0;
+				var innergroup:Group = newGroup();
+				var checkbox:CheckBox;
+				var data:*;
+				
+				super.removeAllElements();
+				
+				for each(data in dataprovider){
+					checkbox = newCheckBox();
+					checkbox.label = String(data);
+					innergroup.addElement(checkbox);
+					elementnumbers++;
+					count++;
+					if (elementnumbers == elementnumberingroup || count == dataprovider.length) {
+						super.addElement(innergroup);
+						elementnumbers = 0;
+						innergroup = newGroup();
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+</s:Group>
